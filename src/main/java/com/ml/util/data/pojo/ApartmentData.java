@@ -17,20 +17,6 @@ public class ApartmentData {
     private String apartmentAge;
     private String geoHash;
 
-    private ApartmentData(String url, String price, String material, String totalArea, String roomsNumber, String apartmentFloorNumber, String maxFloorNumber, String latitude, String longitude, String apartmentAge) {
-        this.url = url;
-        this.price = price;
-        this.material = material;
-        this.totalArea = totalArea;
-        this.roomsNumber = roomsNumber;
-        this.apartmentFloorNumber = apartmentFloorNumber;
-        this.maxFloorNumber = maxFloorNumber;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.apartmentAge = apartmentAge;
-        this.geoHash = GeoHash.encodeHash(Double.valueOf(latitude), Double.valueOf(longitude));
-    }
-
     private ApartmentData(Builder builder) {
         this.url = builder.url;
         this.price = builder.price;
@@ -42,6 +28,7 @@ public class ApartmentData {
         this.latitude = builder.latitude;
         this.longitude = builder.longitude;
         this.apartmentAge = builder.apartmentAge;
+        this.geoHash = GeoHash.encodeHash(Double.valueOf(latitude), Double.valueOf(longitude));
     }
 
     public static class Builder {
@@ -139,11 +126,13 @@ public class ApartmentData {
     }
 
     public boolean isCorrect() {
-        return !material.equals("null") &&
-                !totalArea.equals("null") &&
-                !roomsNumber.equals("null") &&
-                !apartmentFloorNumber.equals("null") &&
-                !maxFloorNumber.equals("null") &&
-                !apartmentAge.equals("null");
+        return !(material == null || material.equals("null")) &&
+                !(totalArea == null || totalArea.equals("null")) &&
+                !(roomsNumber == null || roomsNumber.equals("null")) &&
+                !(apartmentFloorNumber == null || apartmentFloorNumber.equals("null")
+                    || apartmentFloorNumber.equals("цоколь") || apartmentFloorNumber.equals("бельэтаж")
+                    || apartmentFloorNumber.equals("полуподвал")) &&
+                !(maxFloorNumber == null || maxFloorNumber.equals("null")) &&
+                !(apartmentAge == null || apartmentAge.equals("null"));
     }
 }

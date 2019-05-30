@@ -22,6 +22,7 @@ public class GenerateApartmentURLs {
     private static final String BLAGOVIST_PAGE_URL = "https://blagovist.ua/search/apartment/sale/cur_3/kch_2?page=";
     private static final String BLAGOVIST_URL_PATTERN = "https://blagovist.ua/object/[0-9]*";
 
+    private static final int THREADS_NUMBER = 20;
     private static final String APARTMENT_URLS_FILE = "apartment-urls.txt";
 
     public static void main(String[] args) throws Exception {
@@ -31,7 +32,7 @@ public class GenerateApartmentURLs {
             tasks.add(() -> extractUrls(getPageResponse(pageNumber)));
         }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(20);
+        ExecutorService executorService = Executors.newFixedThreadPool(THREADS_NUMBER);
         List<Future<Set<String>>> results = executorService.invokeAll(tasks);
         Set<String> urls = new HashSet<>();
         for (Future<Set<String>> result : results) {
@@ -39,7 +40,7 @@ public class GenerateApartmentURLs {
         }
 
         File file = new File(GenerateApartmentURLs.class.getResource("/" + APARTMENT_URLS_FILE).getFile());
-        Files.write(file.toPath(),urls);
+        Files.write(file.toPath(), urls);
 
         executorService.shutdown();
         if (!executorService.awaitTermination(100, TimeUnit.MICROSECONDS)) {

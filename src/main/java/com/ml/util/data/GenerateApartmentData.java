@@ -1,19 +1,17 @@
 package com.ml.util.data;
 
-import java.io.BufferedReader;
+import com.ml.util.data.pojo.ApartmentData;
+
 import java.io.File;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GenerateApartmentData {
@@ -24,62 +22,66 @@ public class GenerateApartmentData {
     private static final String APARTMENT_URLS_FILE = "apartment-urls.txt";
 
     public static void main(String[] args) throws Exception {
-        Map<String, Map<String, String>> data = new HashMap<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(THREADS_NUMBER);
+        List<Callable<ApartmentData>> tasks = new ArrayList<>();
 
         Path path = Paths.get(GenerateApartmentURLs.class.getResource("/" + APARTMENT_URLS_FILE).toURI());
         try (Stream<String> stream = Files.lines(path)) {
             stream.forEach(url -> {
-                executorService.execute(() -> {
-                    try {
-                        data.put(url, extractData(getPageResponse(url)));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
+                tasks.add(() -> getApartmentData(url, extractData(Utils.getPageResponse(new URL(url)))));
             });
         }
 
-        executorService.shutdown();
-        if (!executorService.awaitTermination(10, TimeUnit.MINUTES)) {
-            System.out.println("Still waiting after 10 min: calling System.exit(0)...");
-            System.exit(0);
-        }
-
-        List<String> result = new ArrayList<>();
-        for (Map.Entry<String, Map<String, String>> stringMapEntry : data.entrySet()) {
-            result.add(stringMapEntry.getKey());
-            for (Map.Entry<String, String> stringStringEntry : stringMapEntry.getValue().entrySet()) {
-                result.add(stringStringEntry.getKey() + "---" + stringStringEntry.getValue());
-            }
-            result.add("\n");
+        ExecutorService executorService = Executors.newFixedThreadPool(THREADS_NUMBER);
+        List<Future<ApartmentData>> results = executorService.invokeAll(tasks);
+        Set<ApartmentData> data = new HashSet<>();
+        for (Future<ApartmentData> result : results) {
+            data.add(result.get());
         }
 
         File file = new File(GenerateApartmentURLs.class.getResource("/" + APARTMENT_DATA_FILE).getFile());
-        Files.write(file.toPath(), result);
-    }
+        Files.write(file.toPath(), Collections.singletonList("URL,Price,Material,TotalArea,RoomsNumber," +
+                "ApartmentFloorNumber,MaxFloorNumber,Latitude,Longitude,ApartmentAge"));
+        Files.write(file.toPath(), data.stream().map(ApartmentData::toString).collect(Collectors.toList()));
 
-    private static String getPageResponse(String url) throws Exception {
-        URL obj = new URL(url);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        StringBuilder response = new StringBuilder();
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
+        executorService.shutdown();
+        if (!executorService.awaitTermination(100, TimeUnit.MICROSECONDS)) {
+            System.out.println("Still waiting after 100ms: calling System.exit(0)...");
+            System.exit(0);
         }
-        in.close();
-
-        return response.toString();
     }
 
-    public static Map<String, String> extractData(String text) {
+    private static Map<String, String> extractData(String text) {
+        Map<String, String> descriptionMap = parseObjectDescription(text);
+        Map<String, String> objectMetadata = parseObjectMetadata(text);
+        return Stream.concat(descriptionMap.entrySet().stream(), objectMetadata.entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static Map<String, String> parseObjectMetadata(String text) {
         Map<String, String> result = new HashMap<>();
 
-        String urlRegex = "<!--—BEGIN details-->[\\s\\S]*'Sale';</script>";
+        String urlRegex = "<script>var  blagovist[\\s\\S]*<!--—END details-->";
+        Pattern pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
+        Matcher urlMatcher = pattern.matcher(text);
+        while (urlMatcher.find()) {
+            String description = text.substring(urlMatcher.start(0), urlMatcher.end(0));
+            String[] lines = description
+                    .replaceAll("(</script>)|(<script>)", "")
+                    .split("var");
+            for (String line : lines) {
+                String[] map = line.split("=");
+                if (map.length == 2) {
+                    result.put(map[0].trim(), map[1].trim().replaceAll("(\')|(;)", ""));
+                }
+            }
+        }
+        return result;
+    }
+
+    private static Map<String, String> parseObjectDescription(String text) {
+        Map<String, String> result = new HashMap<>();
+
+        String urlRegex = "<!--—BEGIN details-->[\\s\\S]*<!--—END details-->";
         Pattern pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
         Matcher urlMatcher = pattern.matcher(text);
         while (urlMatcher.find()) {
@@ -103,36 +105,35 @@ public class GenerateApartmentData {
                 }
             }
         }
-
-        urlRegex = "<script>var  blagovist[\\s\\S]*<!--—END details-->";
-        pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
-        urlMatcher = pattern.matcher(text);
-        while (urlMatcher.find()) {
-            String description = text.substring(urlMatcher.start(0), urlMatcher.end(0));
-            String[] lines = description
-                    .replaceAll("(</script>)|(<script>)", "")
-                    .split("var");
-            for (String line : lines) {
-                String[] map = line.split("=");
-                if (map.length == 2) {
-                    result.put(map[0].trim(), map[1].trim());
-                }
-            }
-        }
         return result;
     }
 
-//    private static ApartmentData getApartmentData(Map<String, String> dataMap) {
-//        ApartmentData.Builder builder = new ApartmentData.Builder();
-//        for (Map.Entry<String, String> entry : dataMap.entrySet()) {
-//            String entryKey = entry.getKey();
-//            if (entryKey.equals("Комнаты")) {
-//            } else if (entryKey.equals("Этаж/Этажей")) {
-//            } else if (entryKey.equals("Материал стен")) {
-//            } else if (entryKey.startsWith("Площадь (общая")) {
-//            } else if (entryKey.equals("Тип (серия) дома")) {
-//            }
-//        }
-//        return null;
-//    }
+    private static ApartmentData getApartmentData(String url, Map<String, String> dataMap) {
+        ApartmentData.Builder builder = new ApartmentData.Builder(url);
+        for (Map.Entry<String, String> entry : dataMap.entrySet()) {
+            String entryKey = entry.getKey();
+            String entryValue = entry.getValue();
+            if (entryKey.equals("Комнаты")) {
+                builder.setRoomsNumber(entryValue.substring(0, 1));
+            } else if (entryKey.equals("Этаж/Этажей")) {
+                builder.setApartmentFloorNumber(entryValue.split("/")[0]);
+                builder.setMaxFloorNumber(entryValue.split("/")[1]);
+            } else if (entryKey.equals("Материал стен")) {
+                builder.setMaterial(entryValue);
+            } else if (entryKey.startsWith("Площадь (общая")) {
+                builder.setTotalArea(entryValue.split("/")[0]);
+            } else if (entryKey.equals("Тип (серия) дома")) {
+                // todo: add mapping
+                builder.setApartmentAge(entryValue);
+            } else if (entryKey.equals("blagovist_mod_object_price")) {
+                Double realPrice = Double.valueOf(entryValue) * 100 / 79.96;
+                builder.setPrice(String.valueOf(realPrice));
+            } else if (entryKey.equals("blagovist_mod_geo_x")) {
+                builder.setLatitude(entryValue);
+            } else if (entryKey.equals("blagovist_mod_geo_y")) {
+                builder.setLongitude(entryValue);
+            }
+        }
+        return builder.build();
+    }
 }

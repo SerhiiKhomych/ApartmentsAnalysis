@@ -1,6 +1,9 @@
 package com.ml.util.data.pojo;
 
+import java.util.Objects;
+
 public class ApartmentData {
+    private final String url;
     private String price;
     private String material;
     private String totalArea;
@@ -11,7 +14,8 @@ public class ApartmentData {
     private String longitude;
     private String apartmentAge;
 
-    private ApartmentData(String price, String material, String totalArea, String roomsNumber, String apartmentFloorNumber, String maxFloorNumber, String latitude, String longitude, String apartmentAge) {
+    private ApartmentData(String url, String price, String material, String totalArea, String roomsNumber, String apartmentFloorNumber, String maxFloorNumber, String latitude, String longitude, String apartmentAge) {
+        this.url = url;
         this.price = price;
         this.material = material;
         this.totalArea = totalArea;
@@ -24,6 +28,7 @@ public class ApartmentData {
     }
 
     private ApartmentData(Builder builder) {
+        this.url = builder.url;
         this.price = builder.price;
         this.material = builder.material;
         this.totalArea = builder.totalArea;;
@@ -36,6 +41,7 @@ public class ApartmentData {
     }
 
     public static class Builder {
+        private final String url;
         private String price;
         private String material;
         private String totalArea;
@@ -46,7 +52,8 @@ public class ApartmentData {
         private String longitude;
         private String apartmentAge;
 
-        public Builder() {
+        public Builder(String url) {
+            this.url = url;
         }
 
         public Builder setPrice(String price) {
@@ -99,6 +106,10 @@ public class ApartmentData {
         }
     }
 
+    public String getUrl() {
+        return url;
+    }
+
     public String getPrice() {
         return price;
     }
@@ -137,16 +148,28 @@ public class ApartmentData {
 
     @Override
     public String toString() {
-        return "ApartmentData{" +
-                "price='" + price + '\'' +
-                ", material='" + material + '\'' +
-                ", totalArea='" + totalArea + '\'' +
-                ", roomsNumber='" + roomsNumber + '\'' +
-                ", apartmentFloorNumber='" + apartmentFloorNumber + '\'' +
-                ", maxFloorNumber='" + maxFloorNumber + '\'' +
-                ", latitude='" + latitude + '\'' +
-                ", longitude='" + longitude + '\'' +
-                ", apartmentAge='" + apartmentAge + '\'' +
-                '}';
+        return url + "," +
+                price + "," +
+                material + "," +
+                totalArea + "," +
+                roomsNumber + "," +
+                apartmentFloorNumber + "," +
+                maxFloorNumber + "," +
+                latitude + "," +
+                longitude + "," +
+                apartmentAge;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApartmentData data = (ApartmentData) o;
+        return Objects.equals(url, data.url);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url);
     }
 }

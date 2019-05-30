@@ -29,7 +29,7 @@ public class GenerateApartmentURLs {
         List<Callable<Set<String>>> tasks = new ArrayList<>();
         for (int i = START_PAGE_NUMBER; i<= END_PAGE_NUMBER; i++) {
             final int pageNumber = i;
-            tasks.add(() -> extractUrls(getPageResponse(pageNumber)));
+            tasks.add(() -> extractUrls(Utils.getPageResponse(new URL(BLAGOVIST_PAGE_URL + pageNumber))));
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(THREADS_NUMBER);
@@ -47,23 +47,6 @@ public class GenerateApartmentURLs {
             System.out.println("Still waiting after 100ms: calling System.exit(0)...");
             System.exit(0);
         }
-    }
-
-    private static String getPageResponse(int pageNumber) throws Exception {
-        URL obj = new URL(BLAGOVIST_PAGE_URL + pageNumber);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        StringBuilder response = new StringBuilder();
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-
-        return response.toString();
     }
 
     private static Set<String> extractUrls(String text) {

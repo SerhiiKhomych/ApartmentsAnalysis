@@ -1,5 +1,7 @@
 package com.ml.util.data.pojo;
 
+import com.github.davidmoten.geo.GeoHash;
+
 import java.util.Objects;
 
 public class ApartmentData {
@@ -13,6 +15,7 @@ public class ApartmentData {
     private String latitude;
     private String longitude;
     private String apartmentAge;
+    private String geoHash;
 
     private ApartmentData(String url, String price, String material, String totalArea, String roomsNumber, String apartmentFloorNumber, String maxFloorNumber, String latitude, String longitude, String apartmentAge) {
         this.url = url;
@@ -25,6 +28,7 @@ public class ApartmentData {
         this.latitude = latitude;
         this.longitude = longitude;
         this.apartmentAge = apartmentAge;
+        this.geoHash = GeoHash.encodeHash(Double.valueOf(latitude), Double.valueOf(longitude));
     }
 
     private ApartmentData(Builder builder) {
@@ -106,46 +110,6 @@ public class ApartmentData {
         }
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public String getPrice() {
-        return price;
-    }
-
-    public String getMaterial() {
-        return material;
-    }
-
-    public String getTotalArea() {
-        return totalArea;
-    }
-
-    public String getRoomsNumber() {
-        return roomsNumber;
-    }
-
-    public String getApartmentFloorNumber() {
-        return apartmentFloorNumber;
-    }
-
-    public String getMaxFloorNumber() {
-        return maxFloorNumber;
-    }
-
-    public String getLatitude() {
-        return latitude;
-    }
-
-    public String getLongitude() {
-        return longitude;
-    }
-
-    public String getApartmentAge() {
-        return apartmentAge;
-    }
-
     @Override
     public String toString() {
         return url + "," +
@@ -153,10 +117,8 @@ public class ApartmentData {
                 material + "," +
                 totalArea + "," +
                 roomsNumber + "," +
-                apartmentFloorNumber + "," +
-                maxFloorNumber + "," +
-                latitude + "," +
-                longitude + "," +
+                Double.valueOf(apartmentFloorNumber) / Double.valueOf(maxFloorNumber) + "," +
+                geoHash + "," +
                 apartmentAge;
     }
 
@@ -164,12 +126,24 @@ public class ApartmentData {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ApartmentData data = (ApartmentData) o;
-        return Objects.equals(url, data.url);
+        ApartmentData that = (ApartmentData) o;
+        return Objects.equals(price, that.price) &&
+                Objects.equals(totalArea, that.totalArea) &&
+                Objects.equals(roomsNumber, that.roomsNumber) &&
+                Objects.equals(geoHash, that.geoHash);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(url);
+        return Objects.hash(price, totalArea, roomsNumber, geoHash);
+    }
+
+    public boolean isCorrect() {
+        return !material.equals("null") &&
+                !totalArea.equals("null") &&
+                !roomsNumber.equals("null") &&
+                !apartmentFloorNumber.equals("null") &&
+                !maxFloorNumber.equals("null") &&
+                !apartmentAge.equals("null");
     }
 }

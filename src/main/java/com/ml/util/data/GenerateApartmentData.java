@@ -1,6 +1,8 @@
 package com.ml.util.data;
 
+import com.ml.util.data.pojo.ApartmentAge;
 import com.ml.util.data.pojo.ApartmentData;
+import com.ml.util.data.pojo.ApartmentMaterial;
 
 import java.io.File;
 import java.net.URL;
@@ -35,7 +37,10 @@ public class GenerateApartmentData {
         List<Future<ApartmentData>> results = executorService.invokeAll(tasks);
         Set<ApartmentData> data = new HashSet<>();
         for (Future<ApartmentData> result : results) {
-            data.add(result.get());
+            ApartmentData apartmentData = result.get();
+            if (apartmentData.isCorrect()) {
+                data.add(apartmentData);
+            }
         }
 
         List<String> output = new ArrayList<>(Collections.singletonList("URL,Price,Material,TotalArea," +
@@ -114,21 +119,21 @@ public class GenerateApartmentData {
         for (Map.Entry<String, String> entry : dataMap.entrySet()) {
             String entryKey = entry.getKey();
             String entryValue = entry.getValue();
+
             if (entryKey.equals("Комнаты")) {
                 builder.setRoomsNumber(entryValue.substring(0, 1));
             } else if (entryKey.equals("Этаж/Этажей")) {
                 builder.setApartmentFloorNumber(entryValue.split("/")[0]);
                 builder.setMaxFloorNumber(entryValue.split("/")[1]);
             } else if (entryKey.equals("Материал стен")) {
-                builder.setMaterial(entryValue);
+                builder.setMaterial(ApartmentMaterial.getCode(entryValue));
             } else if (entryKey.startsWith("Площадь (общая")) {
                 builder.setTotalArea(entryValue.split("/")[0]);
             } else if (entryKey.equals("Тип (серия) дома")) {
-                // todo: add mapping
-                builder.setApartmentAge(entryValue);
+                builder.setApartmentAge(ApartmentAge.getAge(entryValue));
             } else if (entryKey.equals("blagovist_mod_object_price")) {
-                Double realPrice = Double.valueOf(entryValue) * 100 / 79.96;
-                builder.setPrice(String.valueOf(realPrice));
+                //Double realPrice = Double.valueOf(entryValue) * 100 / 79.96;
+                builder.setPrice(entryValue);
             } else if (entryKey.equals("blagovist_mod_geo_x")) {
                 builder.setLatitude(entryValue);
             } else if (entryKey.equals("blagovist_mod_geo_y")) {

@@ -38,10 +38,11 @@ public class GenerateApartmentData {
             data.add(result.get());
         }
 
-        File file = new File(GenerateApartmentURLs.class.getResource("/" + APARTMENT_DATA_FILE).getFile());
-        Files.write(file.toPath(), Collections.singletonList("URL,Price,Material,TotalArea,RoomsNumber," +
-                "ApartmentFloorNumber,MaxFloorNumber,Latitude,Longitude,ApartmentAge"));
-        Files.write(file.toPath(), data.stream().map(ApartmentData::toString).collect(Collectors.toList()));
+        List<String> output = new ArrayList<>(Collections.singletonList("URL,Price,Material,TotalArea," +
+                "RoomsNumber,ApartmentFloorNumber,MaxFloorNumber,Latitude,Longitude,ApartmentAge"));
+        output.addAll(data.stream().map(ApartmentData::toString).collect(Collectors.toList()));
+        File file = new File(GenerateApartmentData.class.getResource("/" + APARTMENT_DATA_FILE).getFile());
+        Files.write(file.toPath(), output);
 
         executorService.shutdown();
         if (!executorService.awaitTermination(100, TimeUnit.MICROSECONDS)) {

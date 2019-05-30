@@ -1,4 +1,4 @@
-package com.ml.util;
+package com.ml.util.data;
 
 import java.io.BufferedReader;
 import java.io.File;

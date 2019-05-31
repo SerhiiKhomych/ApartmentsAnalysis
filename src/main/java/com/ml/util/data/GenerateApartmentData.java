@@ -43,8 +43,8 @@ public class GenerateApartmentData {
             }
         }
 
-        List<String> output = new ArrayList<>(Collections.singletonList("URL,Price,Material,TotalArea," +
-                "RoomsNumber,ApartmentFloorNumber,MaxFloorNumber,Latitude,Longitude,ApartmentAge"));
+        List<String> output = new ArrayList<>(Collections.singletonList("URL,Material,TotalArea," +
+                "RoomsNumber,FloorNumberCoeff,Distance,ApartmentAge,Price"));
         output.addAll(data.stream().map(ApartmentData::toString).collect(Collectors.toList()));
         File file = new File(GenerateApartmentData.class.getResource("/" + APARTMENT_DATA_FILE).getFile());
         Files.write(file.toPath(), output);

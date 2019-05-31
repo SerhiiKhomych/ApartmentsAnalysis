@@ -1,7 +1,5 @@
 package com.ml.util.data.pojo;
 
-import com.github.davidmoten.geo.GeoHash;
-
 import java.util.Objects;
 
 public class ApartmentData {
@@ -15,7 +13,7 @@ public class ApartmentData {
     private String latitude;
     private String longitude;
     private String apartmentAge;
-    private String geoHash;
+    private String distance;
 
     private ApartmentData(Builder builder) {
         this.url = builder.url;
@@ -28,7 +26,8 @@ public class ApartmentData {
         this.latitude = builder.latitude;
         this.longitude = builder.longitude;
         this.apartmentAge = builder.apartmentAge;
-        this.geoHash = GeoHash.encodeHash(Double.valueOf(latitude), Double.valueOf(longitude));
+        this.distance = String.valueOf(FlatEarthDist.distance(50.450252d, 30.523875d,
+                Double.valueOf(latitude), Double.valueOf(longitude)));
     }
 
     public static class Builder {
@@ -100,13 +99,13 @@ public class ApartmentData {
     @Override
     public String toString() {
         return url + "," +
-                price + "," +
                 material + "," +
                 totalArea + "," +
                 roomsNumber + "," +
                 Double.valueOf(apartmentFloorNumber) / Double.valueOf(maxFloorNumber) + "," +
-                geoHash + "," +
-                apartmentAge;
+                distance + "," +
+                apartmentAge + "," +
+                price;
     }
 
     @Override
@@ -117,12 +116,13 @@ public class ApartmentData {
         return Objects.equals(price, that.price) &&
                 Objects.equals(totalArea, that.totalArea) &&
                 Objects.equals(roomsNumber, that.roomsNumber) &&
-                Objects.equals(geoHash, that.geoHash);
+                Objects.equals(latitude, that.latitude) &&
+                Objects.equals(longitude, that.longitude);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(price, totalArea, roomsNumber, geoHash);
+        return Objects.hash(price, totalArea, roomsNumber, latitude, longitude);
     }
 
     public boolean isCorrect() {

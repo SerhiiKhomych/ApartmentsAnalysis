@@ -103,6 +103,8 @@ public class ApartmentData {
                 totalArea + "," +
                 roomsNumber + "," +
                 Double.valueOf(apartmentFloorNumber) / Double.valueOf(maxFloorNumber) + "," +
+                latitude + "," +
+                longitude + "," +
                 distance + "," +
                 apartmentAge + "," +
                 price;

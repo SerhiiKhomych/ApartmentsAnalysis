@@ -44,7 +44,7 @@ public class GenerateApartmentData {
         }
 
         List<String> output = new ArrayList<>(Collections.singletonList("URL,Material,TotalArea," +
-                "RoomsNumber,FloorNumberCoeff,Distance,ApartmentAge,Price"));
+                "RoomsNumber,FloorNumberCoeff,Latitude,Longitude,Distance,ApartmentAge,Price"));
         output.addAll(data.stream().map(ApartmentData::toString).collect(Collectors.toList()));
         File file = new File(GenerateApartmentData.class.getResource("/" + APARTMENT_DATA_FILE).getFile());
         Files.write(file.toPath(), output);
@@ -121,7 +121,7 @@ public class GenerateApartmentData {
             String entryValue = entry.getValue();
 
             if (entryKey.equals("Комнаты")) {
-                builder.setRoomsNumber(entryValue.substring(0, 1));
+                builder.setRoomsNumber(entryValue.replaceAll("\\D+",""));
             } else if (entryKey.equals("Этаж/Этажей")) {
                 builder.setApartmentFloorNumber(entryValue.split("/")[0]);
                 builder.setMaxFloorNumber(entryValue.split("/")[1]);

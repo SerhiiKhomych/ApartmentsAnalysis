@@ -29,5 +29,4 @@ public enum ApartmentMaterial {
         }
         throw new RuntimeException("There are no apartment materials with name " + name);
     }
-
 }

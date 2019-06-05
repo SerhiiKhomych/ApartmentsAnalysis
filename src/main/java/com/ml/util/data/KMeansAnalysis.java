@@ -20,7 +20,7 @@ public class KMeansAnalysis {
 
     public static void main(String[] args) throws Exception {
         MultiKMeansPlusPlusClusterer<DoublePoint> transformer = new MultiKMeansPlusPlusClusterer<>(
-                new KMeansPlusPlusClusterer<>(2, 20), 5);
+                new KMeansPlusPlusClusterer<>(8, 20), 5);
 
         List<DoublePoint> points = new ArrayList<>();
         Map<DoublePoint, String> pointMap = new HashMap<>();
@@ -39,7 +39,7 @@ public class KMeansAnalysis {
                         Double.parseDouble(features[9])
                 });
                 points.add(point);
-                pointMap.put(point, getGreenIcon(features));
+                pointMap.put(point, generateIconHTML(features));
             });
         }
 
@@ -47,24 +47,51 @@ public class KMeansAnalysis {
 
         int i = 0;
         for (CentroidCluster<DoublePoint> cluster : clusters) {
-            System.out.println(cluster.getPoints().size());
             i++;
 
-            System.out.println(i +" CLUSTER");
+            System.out.println(i +" CLUSTER. Size = " + cluster.getPoints().size());
             for (DoublePoint point : cluster.getPoints()) {
-                System.out.println(pointMap.get(point));
+                System.out.println(pointMap.get(point)
+                        .replaceAll("#iconColor#", Color.getColorName(i) + "Icon")
+                );
             }
-            System.out.println("\n\n\n");
+            System.out.println("\n");
         }
     }
 
-    private static String getGreenIcon(String[] features) {
+    private static String generateIconHTML(String[] features) {
         return "L.marker([" +
                 Double.parseDouble(features[5]) +
                 ", " +
                 Double.parseDouble(features[6]) +
-                "], {icon: greenIcon}).addTo(mymap).bindPopup(\"" +
+                "], {icon: #iconColor#}).addTo(mymap).bindPopup(\"" +
                 features[0] +
                 "\");";
+    }
+
+    enum Color {
+        BLACK(1),
+        BLUE(2),
+        GREEN(3),
+        GREY(4),
+        ORANGE(5),
+        RED(6),
+        VIOLET(7),
+        YELLOW(8);
+
+        private int number;
+
+        Color(int number) {
+            this.number = number;
+        }
+
+        public static String getColorName(int number) {
+            for (Color value : values()) {
+                if (number == value.number) {
+                    return value.name().toLowerCase();
+                }
+            }
+            throw new RuntimeException("There are no colors with number " + number);
+        }
     }
 }

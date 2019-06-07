@@ -45,10 +45,19 @@ public class KMeansAnalysis {
 
         List<CentroidCluster<DoublePoint>> clusters = transformer.cluster(points);
 
+        List<DoublePoint> newPoints = new ArrayList<>();
+        for (CentroidCluster<DoublePoint> cluster : clusters) {
+              if (cluster.getPoints().size() > 4000) {
+                  // skip other clusters. They do not  one represent common apartments
+                  newPoints = cluster.getPoints();
+                  break;
+              }
+        }
+
+        clusters = transformer.cluster(newPoints);
         int i = 0;
         for (CentroidCluster<DoublePoint> cluster : clusters) {
             i++;
-
             System.out.println(i +" CLUSTER. Size = " + cluster.getPoints().size());
             for (DoublePoint point : cluster.getPoints()) {
                 System.out.println(pointMap.get(point)

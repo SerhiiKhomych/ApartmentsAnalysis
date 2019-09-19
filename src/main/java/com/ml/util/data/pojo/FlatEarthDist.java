@@ -1,6 +1,14 @@
 package com.ml.util.data.pojo;
 
 public class FlatEarthDist {
+    public static void main(String[] args) {
+        System.out.println(FlatEarthDist.distance(50.450252d, 30.523875d,
+                50.468288, 30.625937));
+
+        System.out.println(FlatEarthDist.distance(50.450252d, 30.523875d,
+                50.458241, 30.510369));
+    }
+
     //returns distance in meters
     public static double distance(double lat1, double lng1,
                                   double lat2, double lng2){

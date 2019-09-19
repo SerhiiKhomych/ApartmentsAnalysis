@@ -16,11 +16,11 @@ import java.util.stream.Stream;
 
 public class KMeansAnalysis {
 
-    private static final String APARTMENT_DATA_FILE = "apartment-data.txt";
+    private static final String APARTMENT_DATA_FILE = "apartment-data.csv";
 
     public static void main(String[] args) throws Exception {
         MultiKMeansPlusPlusClusterer<DoublePoint> transformer = new MultiKMeansPlusPlusClusterer<>(
-                new KMeansPlusPlusClusterer<>(8, 20), 5);
+                new KMeansPlusPlusClusterer<>(2, 20), 5);
 
         List<DoublePoint> points = new ArrayList<>();
         Map<DoublePoint, String> pointMap = new HashMap<>();
@@ -39,7 +39,7 @@ public class KMeansAnalysis {
                         Double.parseDouble(features[9])
                 });
                 points.add(point);
-                pointMap.put(point, generateIconHTML(features));
+                pointMap.put(point, generateFeaturesCSV(features));
             });
         }
 
@@ -76,6 +76,17 @@ public class KMeansAnalysis {
                 "], {icon: #iconColor#}).addTo(mymap).bindPopup(\"" +
                 features[0] +
                 "\");";
+    }
+
+    private static String generateFeaturesCSV(String[] features) {
+        return features[0] + "," +
+                Double.parseDouble(features[1]) + "," +
+                Double.parseDouble(features[2]) + "," +
+                Double.parseDouble(features[3]) + "," +
+                Double.parseDouble(features[4]) + "," +
+                Double.parseDouble(features[7]) + "," +
+                Double.parseDouble(features[8]) + "," +
+                Double.parseDouble(features[9]);
     }
 
     enum Color {

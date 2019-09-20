@@ -16,11 +16,11 @@ public class GenerateApartmentURLs {
     private static final int START_PAGE_NUMBER = 0;
     private static final int END_PAGE_NUMBER = 155;
 
-    private static final String BLAGOVIST_PAGE_URL = "https://blagovist.ua/search/apartment/sale/cur_3/kch_2?page=";
+    private static final String BLAGOVIST_PAGE_URL = "https://blagovist.ua/search/apartment/sale/cur_4/kch_2?page=";
     private static final String BLAGOVIST_URL_PATTERN = "https://blagovist.ua/object/[0-9]*";
 
     private static final int THREADS_NUMBER = 20;
-    private static final String APARTMENT_URLS_FILE = "apartment-urls.txt";
+    private static final String APARTMENT_URLS_FILE = "apartment-urls.csv";
 
     public static void main(String[] args) throws Exception {
         List<Callable<Set<String>>> tasks = new ArrayList<>();

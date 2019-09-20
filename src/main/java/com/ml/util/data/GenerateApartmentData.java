@@ -20,8 +20,8 @@ public class GenerateApartmentData {
 
     private static final int THREADS_NUMBER = 20;
 
-    private static final String APARTMENT_DATA_FILE = "apartment-data.txt";
-    private static final String APARTMENT_URLS_FILE = "apartment-urls.txt";
+    private static final String APARTMENT_DATA_FILE = "apartment-data.csv";
+    private static final String APARTMENT_URLS_FILE = "apartment-urls.csv";
 
     public static void main(String[] args) throws Exception {
         List<Callable<ApartmentData>> tasks = new ArrayList<>();
@@ -37,6 +37,7 @@ public class GenerateApartmentData {
         List<Future<ApartmentData>> results = executorService.invokeAll(tasks);
         Set<ApartmentData> data = new HashSet<>();
         for (Future<ApartmentData> result : results) {
+            System.out.println("...");
             ApartmentData apartmentData = result.get();
             if (apartmentData.isCorrect()) {
                 data.add(apartmentData);
@@ -59,8 +60,10 @@ public class GenerateApartmentData {
     private static Map<String, String> extractData(String text) {
         Map<String, String> descriptionMap = parseObjectDescription(text);
         Map<String, String> objectMetadata = parseObjectMetadata(text);
-        return Stream.concat(descriptionMap.entrySet().stream(), objectMetadata.entrySet().stream())
+        Map<String, String> mergedMap = Stream.concat(descriptionMap.entrySet().stream(), objectMetadata.entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        mergedMap.put("Price_USD", parsePrice(text));
+        return mergedMap;
     }
 
     private static Map<String, String> parseObjectMetadata(String text) {
@@ -82,6 +85,29 @@ public class GenerateApartmentData {
             }
         }
         return result;
+    }
+
+    private static String parsePrice(String text) {
+        String urlRegex = "<!--—BEGIN price-->[\\s\\S]*<!--—END price-->";
+        Pattern pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
+        Matcher urlMatcher = pattern.matcher(text);
+        while (urlMatcher.find()) {
+            String description = text.substring(urlMatcher.start(0), urlMatcher.end(0));
+            urlRegex = "content=\"USD[\\s\\S]*\\$";
+            pattern = Pattern.compile(urlRegex, Pattern.CASE_INSENSITIVE);
+            urlMatcher = pattern.matcher(description);
+
+            while (urlMatcher.find()) {
+               String tableData = description.substring(urlMatcher.start(0), urlMatcher.end(0));
+
+                Pattern p = Pattern.compile("\"([^\"]*)\"");
+                Matcher m = p.matcher(tableData);
+                while (m.find()) {
+                    return m.group(1).replaceAll("USD", "").replaceAll("\\s","");
+                }
+           }
+        }
+        throw new RuntimeException("Failed to parse the price!");
     }
 
     private static Map<String, String> parseObjectDescription(String text) {
@@ -131,8 +157,7 @@ public class GenerateApartmentData {
                 builder.setTotalArea(entryValue.split("/")[0]);
             } else if (entryKey.equals("Тип (серия) дома")) {
                 builder.setApartmentAge(ApartmentAge.getAge(entryValue));
-            } else if (entryKey.equals("blagovist_mod_object_price")) {
-                //Double realPrice = Double.valueOf(entryValue) * 100 / 79.96;
+            } else if (entryKey.equals("Price_USD")) {
                 builder.setPrice(entryValue);
             } else if (entryKey.equals("blagovist_mod_geo_x")) {
                 builder.setLatitude(entryValue);

@@ -20,7 +20,7 @@ public class KMeansAnalysis {
 
     public static void main(String[] args) throws Exception {
         MultiKMeansPlusPlusClusterer<DoublePoint> transformer = new MultiKMeansPlusPlusClusterer<>(
-                new KMeansPlusPlusClusterer<>(2, 20), 5);
+                new KMeansPlusPlusClusterer<>(3, 20), 5);
 
         List<DoublePoint> points = new ArrayList<>();
         Map<DoublePoint, String> pointMap = new HashMap<>();

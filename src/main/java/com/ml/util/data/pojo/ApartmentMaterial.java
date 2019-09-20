@@ -11,7 +11,9 @@ public enum ApartmentMaterial {
     TYPE_8("null", "null"),
     TYPE_9("Ракушняк", "9"),
     TYPE_10("Пеноблок/кирпич", "10"),
-    TYPE_11("Комбинир.", "11");
+    TYPE_11("Комбинир.", "11"),
+    TYPE_12("Металл", "12"),
+    TYPE_13("Пенобетон", "13");
 
     private String name;
     private String code;

@@ -24,51 +24,53 @@ def step_decay_schedule(initial_lr=1e-3, decay_factor=0.8, step_size=1500):
 
 callback = step_decay_schedule()
 
-fields = ['Material', 'TotalArea', 'RoomsNumber', 'FloorNumberCoeff', 'Distance', 'ApartmentAge', 'Price']
-csv = pd.read_csv("../src/main/resources/k-means-3/cluster_1.csv", usecols=fields)
+fields = ['URL', 'Material', 'TotalArea', 'RoomsNumber', 'FloorNumberCoeff', 'Distance', 'ApartmentAge', 'Price', 'State', 'NearSubway']
+csv = pd.read_csv("../src/main/resources/k-means-3/cluster_1_1.csv", usecols=fields)
 
-xs = csv[['Material', 'TotalArea', 'RoomsNumber', 'FloorNumberCoeff', 'Distance', 'ApartmentAge']].to_numpy()
+xs = csv[['URL', 'Material', 'TotalArea', 'RoomsNumber', 'FloorNumberCoeff', 'Distance', 'ApartmentAge', 'State', 'NearSubway']].to_numpy()
 ys = csv['Price'].to_numpy() / 1000
 
-x_train, x_test, y_train, y_test = train_test_split(xs, ys, test_size=0.2)
+x_train_url, x_test_url, y_train, y_test = train_test_split(xs, ys, test_size=0.2)
+
+x_train = x_train_url[:, [1, 2, 3, 4, 5, 6, 7, 8]]
+x_test = x_test_url[:, [1, 2, 3, 4, 5, 6, 7, 8]]
 
 model = Sequential()
-model.add(Dense(128, input_dim=6))
-# model.add(BatchNormalization())
+model.add(Dense(128, input_dim=8))
+model.add(BatchNormalization())
 model.add(Dropout(0.5))
 
 model.add(Dense(256))
-# model.add(BatchNormalization())
+model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
 
 model.add(Dense(256))
-# model.add(BatchNormalization())
+model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
 
 model.add(Dense(256))
-# model.add(BatchNormalization())
+model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
 
 model.add(Dense(256))
-# model.add(BatchNormalization())
+model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
 
 model.add(Dense(256))
-# model.add(BatchNormalization())
+model.add(BatchNormalization())
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
 
 model.add(Dense(1))
-# model.add(BatchNormalization())
+model.add(BatchNormalization())
 model.add(Activation('linear'))
 model.compile(optimizer='adam', loss='mean_absolute_error')
-#, metrics=['mean_absolute_error'])
 
-history = model.fit(x_train, y_train, epochs=60910, validation_split=0.1, callbacks=[callback])
+history = model.fit(x_train, y_train, epochs=20000, validation_split=0.1, callbacks=[callback])
 
 # summarize history for loss
 plt.plot(history.history['loss'])
@@ -79,12 +81,13 @@ plt.xlabel('epoch')
 plt.legend(['loss', 'val_loss'], loc='upper left')
 plt.show()
 
-home = np.array([['4', '48', '2', '0.6', '7521.69', '62']])
-new_home = np.array([['1', '65', '2', '0.4285714', '1307.686', '1']])
+home = np.array([['4', '48', '2', '0.6', '7521.69', '62', '3', '1']])
+new_home = np.array([['1', '65', '2', '0.4285714', '1307.686', '1', '1', '1']])
 
 print(model.predict(home))
 print(model.predict(new_home))
 
 y_predict = model.predict(x_test)
 
-np.savetxt("foo.csv", np.column_stack((y_predict, y_test)) * 1000, delimiter=",", fmt='%d')
+np.savetxt("results_url.csv", x_test_url[:, 0], fmt="%s")
+np.savetxt("results.csv", np.column_stack((y_predict, y_test)) * 1000, delimiter=",", fmt='%s')
